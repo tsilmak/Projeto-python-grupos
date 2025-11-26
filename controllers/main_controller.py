@@ -37,6 +37,24 @@ class MainController:
         return student
 
     @validate_types
+    def update_student(self, student_number: str, name: str, email: str) -> Student:
+        if student_number not in self.data_manager.students:
+             raise ValueError("Aluno não encontrado.")
+
+        # Validations
+        if not name or not email:
+            raise ValueError("Todos os campos são obrigatórios.")
+
+        if "@" not in email:
+            raise ValueError("Email inválido.")
+        
+        student = self.data_manager.students[student_number]
+        student.name = name
+        student.email = email
+        self.save_data()
+        return student
+
+    @validate_types
     def delete_student(self, student_number: str) -> None:
         if student_number not in self.data_manager.students:
             raise ValueError("Aluno não encontrado.")
@@ -90,6 +108,37 @@ class MainController:
         group_id = str(uuid.uuid4())
         group = Group(group_id, name, max_cap)
         self.data_manager.groups[group_id] = group
+        self.save_data()
+        return group
+
+    @validate_types
+    def update_group(self, group_id: str, name: str, max_capacity: str) -> Group:
+        if group_id not in self.data_manager.groups:
+            raise ValueError("Grupo não encontrado.")
+            
+        group = self.data_manager.groups[group_id]
+
+        # RB03: Unique name (excluding self)
+        for g in self.data_manager.groups.values():
+            if g.name.lower() == name.lower() and g.group_id != group_id:
+                raise ValueError("Nome de grupo já existe.")
+        
+        try:
+            max_cap = int(max_capacity)
+            if max_cap <= 0:
+                raise ValueError("Capacidade deve ser maior que zero.")
+            
+            # Validation: New capacity cannot be smaller than current size
+            if max_cap < group.current_size():
+                raise ValueError(f"Capacidade não pode ser menor que o número atual de membros ({group.current_size()}).")
+                
+        except ValueError as e:
+            if "Capacidade" in str(e):
+                raise e
+            raise ValueError("Capacidade deve ser um número inteiro.")
+
+        group.name = name
+        group.max_capacity = max_cap
         self.save_data()
         return group
 

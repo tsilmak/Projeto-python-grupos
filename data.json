@@ -10,13 +10,13 @@
             "student_number": "123123123",
             "name": "Diogo Nunes",
             "email": "diogonunes@istec.pt",
-            "group_id": null
+            "group_id": "d0aa46f4-7877-42ba-b44d-b4c7fb52e52f"
         },
         {
             "student_number": "124124",
             "name": "asdasd",
-            "email": "sadasd@",
-            "group_id": "d0aa46f4-7877-42ba-b44d-b4c7fb52e52f"
+            "email": "sadasd@0",
+            "group_id": null
         }
     ],
     "groups": [
@@ -27,8 +27,15 @@
             "creation_date": "2025-11-26 23:03:40",
             "student_ids": [
                 "123123",
-                "124124"
+                "123123123"
             ]
+        },
+        {
+            "group_id": "3ffcc3c7-c51c-4842-8605-c45bfe6a7f3a",
+            "name": "060",
+            "max_capacity": 62,
+            "creation_date": "2025-11-26 23:14:48",
+            "student_ids": []
         }
     ]
 }
