@@ -1,17 +1,18 @@
 import json
 import os
+from typing import Dict
 from models.student import Student
 from models.group import Group
 
 DATA_FILE = "data.json"
 
 class DataManager:
-    def __init__(self):
-        self.students = {}  # Map student_number -> Student object
-        self.groups = {}    # Map group_id -> Group object
+    def __init__(self) -> None:
+        self.students: Dict[str, Student] = {}  # Map student_number -> Student object
+        self.groups: Dict[str, Group] = {}    # Map group_id -> Group object
         self.load_data()
 
-    def load_data(self):
+    def load_data(self) -> None:
         if not os.path.exists(DATA_FILE):
             return
 
@@ -32,7 +33,7 @@ class DataManager:
         except (json.JSONDecodeError, IOError) as e:
             print(f"Error loading data: {e}")
 
-    def save_data(self):
+    def save_data(self) -> None:
         data = {
             "students": [s.to_dict() for s in self.students.values()],
             "groups": [g.to_dict() for g in self.groups.values()]
@@ -42,4 +43,3 @@ class DataManager:
                 json.dump(data, f, indent=4, ensure_ascii=False)
         except IOError as e:
             print(f"Error saving data: {e}")
-

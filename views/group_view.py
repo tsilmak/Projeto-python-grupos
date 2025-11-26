@@ -1,15 +1,20 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from typing import List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from controllers.main_controller import MainController
+    from models.group import Group
 
 class GroupView(ttk.Frame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent: tk.Widget, controller: 'MainController') -> None:
         super().__init__(parent)
-        self.controller = controller
+        self.controller: 'MainController' = controller
         
         self.create_widgets()
         self.refresh_list()
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
         # Create Group Form
         form_frame = ttk.LabelFrame(self, text="Criar Grupo")
         form_frame.pack(side="top", fill="x", padx=10, pady=5)
@@ -23,6 +28,16 @@ class GroupView(ttk.Frame):
         self.entry_capacity.grid(row=0, column=3, padx=5, pady=5)
 
         ttk.Button(form_frame, text="Criar", command=self.create_group).grid(row=0, column=4, padx=10, pady=5)
+
+        # Search Frame
+        search_frame = ttk.Frame(self)
+        search_frame.pack(side="top", fill="x", padx=10, pady=5)
+        
+        ttk.Label(search_frame, text="Pesquisar:").pack(side="left", padx=5)
+        self.entry_search = ttk.Entry(search_frame)
+        self.entry_search.pack(side="left", fill="x", expand=True, padx=5)
+        ttk.Button(search_frame, text="Buscar", command=self.perform_search).pack(side="left", padx=5)
+        ttk.Button(search_frame, text="Limpar", command=self.clear_search).pack(side="left", padx=5)
 
         # List Frame
         list_frame = ttk.LabelFrame(self, text="Lista de Grupos")
@@ -48,7 +63,7 @@ class GroupView(ttk.Frame):
         ttk.Button(action_frame, text="Gerir Membros", command=self.manage_group).pack(side="left", padx=5)
         ttk.Button(action_frame, text="Eliminar Grupo", command=self.delete_group).pack(side="right", padx=5)
 
-    def create_group(self):
+    def create_group(self) -> None:
         name = self.entry_name.get().strip()
         capacity = self.entry_capacity.get().strip()
 
@@ -60,19 +75,33 @@ class GroupView(ttk.Frame):
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
 
-    def clear_form(self):
+    def clear_form(self) -> None:
         self.entry_name.delete(0, tk.END)
         self.entry_capacity.delete(0, tk.END)
 
-    def refresh_list(self):
+    def perform_search(self) -> None:
+        query = self.entry_search.get().strip()
+        if query:
+            results = self.controller.search_groups(query)
+            self.refresh_list(groups=results)
+        else:
+            self.refresh_list()
+
+    def clear_search(self) -> None:
+        self.entry_search.delete(0, tk.END)
+        self.refresh_list()
+
+    def refresh_list(self, groups: Optional[List['Group']] = None) -> None:
         for item in self.tree.get_children():
             self.tree.delete(item)
         
-        groups = self.controller.get_all_groups()
+        if groups is None:
+            groups = self.controller.get_all_groups()
+            
         for g in groups:
             self.tree.insert("", "end", values=(g.name, g.max_capacity, g.current_size(), g.group_id))
 
-    def delete_group(self):
+    def delete_group(self) -> None:
         selected = self.tree.selection()
         if not selected:
             messagebox.showwarning("Aviso", "Selecione um grupo.")
@@ -88,7 +117,7 @@ class GroupView(ttk.Frame):
             except ValueError as e:
                 messagebox.showerror("Erro", str(e))
 
-    def manage_group(self):
+    def manage_group(self) -> None:
         selected = self.tree.selection()
         if not selected:
             messagebox.showwarning("Aviso", "Selecione um grupo para gerir.")
@@ -100,19 +129,24 @@ class GroupView(ttk.Frame):
 
 
 class GroupDetailsWindow(tk.Toplevel):
-    def __init__(self, parent, controller, group_id):
+    def __init__(self, parent: tk.Widget, controller: 'MainController', group_id: str) -> None:
         super().__init__(parent)
-        self.controller = controller
-        self.group_id = group_id
-        self.group = self.controller.get_group(group_id)
+        self.controller: 'MainController' = controller
+        self.group_id: str = group_id
+        self.group: Optional['Group'] = self.controller.get_group(group_id)
         
+        if not self.group:
+             self.destroy()
+             return
+
         self.title(f"Gerir Grupo: {self.group.name}")
         self.geometry("600x400")
 
         self.create_widgets()
         self.refresh_lists()
 
-    def create_widgets(self):
+    def create_widgets(self) -> None:
+        if not self.group: return
         # Info
         info_label = ttk.Label(self, text=f"Grupo: {self.group.name} | Capacidade: {self.group.max_capacity}")
         info_label.pack(pady=10)
@@ -140,7 +174,7 @@ class GroupDetailsWindow(tk.Toplevel):
         self.list_members = tk.Listbox(right_frame)
         self.list_members.pack(fill="both", expand=True, padx=5, pady=5)
 
-    def refresh_lists(self):
+    def refresh_lists(self) -> None:
         self.list_available.delete(0, tk.END)
         self.list_members.delete(0, tk.END)
 
@@ -152,12 +186,13 @@ class GroupDetailsWindow(tk.Toplevel):
         # Members
         # Reload group to get fresh data
         self.group = self.controller.get_group(self.group_id)
-        for s_num in self.group.student_ids:
-            student = self.controller.get_student(s_num)
-            if student:
-                self.list_members.insert(tk.END, f"{student.student_number} - {student.name}")
+        if self.group:
+            for s_num in self.group.student_ids:
+                student = self.controller.get_student(s_num)
+                if student:
+                    self.list_members.insert(tk.END, f"{student.student_number} - {student.name}")
 
-    def add_student(self):
+    def add_student(self) -> None:
         selection = self.list_available.curselection()
         if not selection:
             return
@@ -168,11 +203,12 @@ class GroupDetailsWindow(tk.Toplevel):
         try:
             self.controller.add_student_to_group(student_number, self.group_id)
             self.refresh_lists()
-            self.master.refresh_list() # Update parent list counts
+            if isinstance(self.master, GroupView): # Type check safe
+                self.master.refresh_list() # Update parent list counts
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
 
-    def remove_student(self):
+    def remove_student(self) -> None:
         selection = self.list_members.curselection()
         if not selection:
             return
@@ -183,7 +219,7 @@ class GroupDetailsWindow(tk.Toplevel):
         try:
             self.controller.remove_student_from_group(student_number, self.group_id)
             self.refresh_lists()
-            self.master.refresh_list() # Update parent list counts
+            if isinstance(self.master, GroupView):
+                self.master.refresh_list() # Update parent list counts
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
-

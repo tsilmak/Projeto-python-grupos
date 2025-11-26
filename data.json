@@ -4,23 +4,30 @@
             "student_number": "123123",
             "name": "123123",
             "email": "lele@istec.pt",
-            "group_id": null
+            "group_id": "d0aa46f4-7877-42ba-b44d-b4c7fb52e52f"
         },
         {
             "student_number": "123123123",
             "name": "Diogo Nunes",
             "email": "diogonunes@istec.pt",
-            "group_id": "512bef66-9a18-4e8c-8782-d538507df362"
+            "group_id": null
+        },
+        {
+            "student_number": "124124",
+            "name": "asdasd",
+            "email": "sadasd@",
+            "group_id": "d0aa46f4-7877-42ba-b44d-b4c7fb52e52f"
         }
     ],
     "groups": [
         {
-            "group_id": "512bef66-9a18-4e8c-8782-d538507df362",
-            "name": "grupo213",
-            "max_capacity": 4,
-            "creation_date": "2025-11-26 22:36:17",
+            "group_id": "d0aa46f4-7877-42ba-b44d-b4c7fb52e52f",
+            "name": "dsadasd",
+            "max_capacity": 33,
+            "creation_date": "2025-11-26 23:03:40",
             "student_ids": [
-                "123123123"
+                "123123",
+                "124124"
             ]
         }
     ]
