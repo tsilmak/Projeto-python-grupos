@@ -8,7 +8,17 @@ if TYPE_CHECKING:
     from models.student import Student
 
 class StudentView(ctk.CTkFrame):
+    """
+    Interface gráfica para gestão de alunos.
+    """
     def __init__(self, parent, controller: 'MainController') -> None:
+        """
+        Inicializa a vista de alunos.
+
+        Args:
+            parent: Widget pai.
+            controller (MainController): Controlador principal.
+        """
         super().__init__(parent)
         self.controller: 'MainController' = controller
         
@@ -21,25 +31,33 @@ class StudentView(ctk.CTkFrame):
         self.refresh_list()
 
     def create_widgets(self) -> None:
+        """Cria os widgets da interface."""
         # Form Frame
         form_frame = ctk.CTkFrame(self)
         form_frame.pack(side="top", fill="x", padx=10, pady=(10, 5))
 
+        # Configure grid for responsiveness
+        form_frame.grid_columnconfigure(1, weight=1)
+        form_frame.grid_columnconfigure(3, weight=1)
+        form_frame.grid_columnconfigure(5, weight=1)
+
         ctk.CTkLabel(form_frame, text="Registar Aluno", font=("Roboto", 16, "bold")).grid(row=0, column=0, columnspan=7, pady=(10, 15), sticky="w", padx=15)
 
-        ctk.CTkLabel(form_frame, text="Número:").grid(row=1, column=0, padx=10, pady=10)
+        # Row 1
+        ctk.CTkLabel(form_frame, text="Número:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
         self.entry_number = ctk.CTkEntry(form_frame, placeholder_text="Ex: 12345")
-        self.entry_number.grid(row=1, column=1, padx=10, pady=10)
+        self.entry_number.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
 
-        ctk.CTkLabel(form_frame, text="Nome:").grid(row=1, column=2, padx=10, pady=10)
+        ctk.CTkLabel(form_frame, text="Nome:").grid(row=1, column=2, padx=10, pady=5, sticky="e")
         self.entry_name = ctk.CTkEntry(form_frame, placeholder_text="Nome do Aluno")
-        self.entry_name.grid(row=1, column=3, padx=10, pady=10)
+        self.entry_name.grid(row=1, column=3, padx=10, pady=5, sticky="ew")
 
-        ctk.CTkLabel(form_frame, text="Email:").grid(row=1, column=4, padx=10, pady=10)
-        self.entry_email = ctk.CTkEntry(form_frame, placeholder_text="email@exemplo.com")
-        self.entry_email.grid(row=1, column=5, padx=10, pady=10)
+        ctk.CTkLabel(form_frame, text="Email:").grid(row=1, column=4, padx=10, pady=5, sticky="e")
+        self.entry_email = ctk.CTkEntry(form_frame, placeholder_text="email@my.istec.pt")
+        self.entry_email.grid(row=1, column=5, padx=10, pady=5, sticky="ew")
 
-        ctk.CTkButton(form_frame, text="Adicionar", command=self.add_student).grid(row=1, column=6, padx=10, pady=10)
+        # Row 2 (Button)
+        ctk.CTkButton(form_frame, text="Adicionar", command=self.add_student).grid(row=2, column=0, columnspan=6, padx=10, pady=(5, 15))
 
         # Search Frame
         search_frame = ctk.CTkFrame(self)
@@ -72,12 +90,19 @@ class StudentView(ctk.CTkFrame):
         style.map("Treeview.Heading",
                   background=[('active', '#163c66')])
 
-        columns = ("number", "name", "email", "group")
+        columns = ("number", "name", "email", "group", "creationDate")
         self.tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
         self.tree.heading("number", text="Número")
         self.tree.heading("name", text="Nome")
         self.tree.heading("email", text="Email")
         self.tree.heading("group", text="Grupo")
+        self.tree.heading("creationDate", text="Dia de criação")
+        
+        self.tree.column("number", width=100)
+        self.tree.column("name", width=200)
+        self.tree.column("email", width=200)
+        self.tree.column("group", width=100)
+        self.tree.column("creationDate", width=100)
         
         self.tree.pack(side="left", fill="both", expand=True, padx=2, pady=2)
         
@@ -92,6 +117,7 @@ class StudentView(ctk.CTkFrame):
         action_frame = ctk.CTkFrame(self, fg_color="transparent")
         action_frame.pack(side="top", fill="x", padx=10, pady=5)
         ctk.CTkButton(action_frame, text="Editar Aluno", command=self.edit_student).pack(side="left", padx=5)
+        ctk.CTkButton(action_frame, text="Transferir", command=self.transfer_student).pack(side="left", padx=5)
         ctk.CTkButton(action_frame, text="Remover Aluno Selecionado", command=self.delete_student, fg_color="#c42b1c", hover_color="#961e14").pack(side="right")
 
         # Setup Focus Behavior
@@ -109,6 +135,7 @@ class StudentView(ctk.CTkFrame):
         entry.bind("<FocusOut>", lambda e: entry.configure(border_color=default_border))
 
     def add_student(self) -> None:
+        """Adiciona um novo aluno com base nos dados do formulário."""
         number = self.entry_number.get().strip()
         name = self.entry_name.get().strip()
         email = self.entry_email.get().strip()
@@ -122,6 +149,12 @@ class StudentView(ctk.CTkFrame):
             messagebox.showerror("Erro", str(e))
 
     def edit_student(self, event=None) -> None:
+        """
+        Abre a janela de edição para o aluno selecionado.
+
+        Args:
+            event: Evento que disparou a ação (opcional).
+        """
         selected = self.tree.selection()
         if not selected:
             if event is None: # Only show warning if clicked button
@@ -136,6 +169,7 @@ class StudentView(ctk.CTkFrame):
             EditStudentWindow(self, self.controller, student)
 
     def delete_student(self) -> None:
+        """Remove o aluno selecionado após confirmação."""
         selected = self.tree.selection()
         if not selected:
             messagebox.showwarning("Aviso", "Selecione um aluno para remover.")
@@ -152,12 +186,28 @@ class StudentView(ctk.CTkFrame):
             except ValueError as e:
                 messagebox.showerror("Erro", str(e))
 
+    def transfer_student(self) -> None:
+        """Abre a janela de transferência para o aluno selecionado."""
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showwarning("Aviso", "Selecione um aluno para transferir.")
+            return
+
+        item = self.tree.item(selected[0])
+        number = item['values'][0]
+        
+        student = self.controller.get_student(str(number))
+        if student:
+            TransferStudentWindow(self, self.controller, student)
+
     def clear_form(self) -> None:
+        """Limpa os campos do formulário de criação."""
         self.entry_number.delete(0, tk.END)
         self.entry_name.delete(0, tk.END)
         self.entry_email.delete(0, tk.END)
 
     def perform_search(self) -> None:
+        """Executa a pesquisa de alunos."""
         query = self.entry_search.get().strip()
         if query:
             results = self.controller.search_students(query)
@@ -166,10 +216,18 @@ class StudentView(ctk.CTkFrame):
             self.refresh_list()
 
     def clear_search(self) -> None:
+        """Limpa a pesquisa e restaura a lista completa."""
         self.entry_search.delete(0, tk.END)
         self.refresh_list()
 
     def refresh_list(self, students: Optional[List['Student']] = None) -> None:
+        """
+        Atualiza a lista de alunos na interface.
+
+        Args:
+            students (Optional[List[Student]]): Lista de alunos a exibir. 
+                                                Se None, carrega todos.
+        """
         for item in self.tree.get_children():
             self.tree.delete(item)
         
@@ -183,9 +241,10 @@ class StudentView(ctk.CTkFrame):
                 if group:
                     group_name = group.name
             
-            self.tree.insert("", "end", values=(s.student_number, s.name, s.email, group_name))
+            self.tree.insert("", "end", values=(s.student_number, s.name, s.email, group_name, s.creation_date))
 
 class EditStudentWindow(ctk.CTkToplevel):
+    """Janela modal para edição de um aluno."""
     def __init__(self, parent: StudentView, controller: 'MainController', student: 'Student') -> None:
         super().__init__(parent)
         self.controller = controller
@@ -199,6 +258,7 @@ class EditStudentWindow(ctk.CTkToplevel):
         self.create_widgets()
 
     def create_widgets(self) -> None:
+        """Cria os widgets da janela de edição."""
         content_frame = ctk.CTkFrame(self)
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
@@ -227,6 +287,7 @@ class EditStudentWindow(ctk.CTkToplevel):
         ctk.CTkButton(content_frame, text="Guardar", command=self.save).pack(pady=20)
 
     def setup_focus(self, entry):
+        """Configura o comportamento de foco para um campo de entrada."""
         # Reusing focus logic roughly or could import/mixin
         default_border = ("#979DA2", "#565B5E")
         focus_border = "#3B8ED0"
@@ -235,12 +296,64 @@ class EditStudentWindow(ctk.CTkToplevel):
         entry.bind("<FocusOut>", lambda e: entry.configure(border_color=default_border))
 
     def save(self) -> None:
+        """Guarda as alterações feitas ao aluno."""
         name = self.entry_name.get().strip()
         email = self.entry_email.get().strip()
 
         try:
             self.controller.update_student(self.student.student_number, name, email)
             messagebox.showinfo("Sucesso", "Aluno atualizado com sucesso.")
+            self.parent_view.refresh_list()
+            self.destroy()
+        except ValueError as e:
+            messagebox.showerror("Erro", str(e))
+
+class TransferStudentWindow(ctk.CTkToplevel):
+    """Janela modal para transferência de um aluno (RF13)."""
+    def __init__(self, parent: StudentView, controller: 'MainController', student: 'Student') -> None:
+        super().__init__(parent)
+        self.controller = controller
+        self.student = student
+        self.parent_view = parent
+        
+        self.title(f"Transferir Aluno: {student.name}")
+        self.geometry("400x250")
+        self.grab_set()
+        
+        self.create_widgets()
+        
+    def create_widgets(self):
+        content_frame = ctk.CTkFrame(self)
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        ctk.CTkLabel(content_frame, text=f"Transferir {self.student.name} para:").pack(pady=10)
+        
+        # Group selection
+        groups = self.controller.get_all_groups()
+        # Filter out current group
+        self.group_map = {g.name: g.group_id for g in groups if g.group_id != self.student.group_id}
+        group_names = list(self.group_map.keys())
+        
+        if not group_names:
+            ctk.CTkLabel(content_frame, text="Não há outros grupos disponíveis.").pack(pady=10)
+            return
+
+        self.combo_groups = ctk.CTkComboBox(content_frame, values=group_names)
+        self.combo_groups.pack(pady=10)
+        
+        ctk.CTkButton(content_frame, text="Confirmar Transferência", command=self.confirm).pack(pady=20)
+        
+    def confirm(self):
+        group_name = self.combo_groups.get()
+        if not group_name or group_name not in self.group_map:
+             messagebox.showerror("Erro", "Selecione um grupo válido.")
+             return
+             
+        group_id = self.group_map[group_name]
+        
+        try:
+            self.controller.transfer_student(self.student.student_number, group_id)
+            messagebox.showinfo("Sucesso", "Aluno transferido.")
             self.parent_view.refresh_list()
             self.destroy()
         except ValueError as e:

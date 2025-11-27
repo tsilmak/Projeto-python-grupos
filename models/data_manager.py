@@ -1,18 +1,31 @@
 import json
 import os
-from typing import Dict
+from typing import Dict, Any
 from models.student import Student
 from models.group import Group
 
 DATA_FILE = "data.json"
 
 class DataManager:
+    """
+    Gestor de persistência de dados (alunos e grupos).
+    Carrega e guarda dados num ficheiro JSON.
+
+    Attributes:
+        students (Dict[str, Student]): Dicionário de alunos (número -> Student).
+        groups (Dict[str, Group]): Dicionário de grupos (id -> Group).
+    """
     def __init__(self) -> None:
+        """Inicializa o DataManager e carrega os dados."""
         self.students: Dict[str, Student] = {}  # Map student_number -> Student object
         self.groups: Dict[str, Group] = {}    # Map group_id -> Group object
         self.load_data()
 
     def load_data(self) -> None:
+        """
+        Carrega os dados do ficheiro JSON (DATA_FILE).
+        Preenche os dicionários self.students e self.groups.
+        """
         if not os.path.exists(DATA_FILE):
             return
 
@@ -34,6 +47,9 @@ class DataManager:
             print(f"Error loading data: {e}")
 
     def save_data(self) -> None:
+        """
+        Guarda os dados atuais (alunos e grupos) no ficheiro JSON.
+        """
         data = {
             "students": [s.to_dict() for s in self.students.values()],
             "groups": [g.to_dict() for g in self.groups.values()]
