@@ -12,13 +12,6 @@ class GroupView(ctk.CTkFrame):
     Interface gráfica para gestão de grupos.
     """
     def __init__(self, parent, controller: 'MainController') -> None:
-        """
-        Inicializa a vista de grupos.
-
-        Args:
-            parent: Widget pai.
-            controller (MainController): Controlador principal.
-        """
         super().__init__(parent)
         self.controller: 'MainController' = controller
         
@@ -26,34 +19,36 @@ class GroupView(ctk.CTkFrame):
         self.refresh_list()
 
     def create_widgets(self) -> None:
-        """Cria os widgets da interface."""
-        # Create Group Form
+        """Cria elementos visuais para gestão de grupos."""
+        
+        # --- Formulário de Criação de Grupo ---
         form_frame = ctk.CTkFrame(self)
         form_frame.pack(side="top", fill="x", padx=10, pady=(10, 5))
 
-        # Configure grid for responsiveness
+        # Configuração da grelha
         form_frame.grid_columnconfigure(1, weight=3)
         form_frame.grid_columnconfigure(3, weight=1)
 
         ctk.CTkLabel(form_frame, text="Criar Grupo", font=("Roboto", 16, "bold")).grid(row=0, column=0, columnspan=5, pady=(10, 15), sticky="w", padx=15)
 
-        # Row 1
+        # Campo Nome
         ctk.CTkLabel(form_frame, text="Nome do Grupo:").grid(row=1, column=0, padx=10, pady=5, sticky="e")
         self.entry_name = ctk.CTkEntry(form_frame, placeholder_text="Nome do Grupo")
         self.entry_name.grid(row=1, column=1, columnspan=4, padx=10, pady=5, sticky="ew")
 
-        # Row 2
+        # Campo Capacidade Máxima
         ctk.CTkLabel(form_frame, text="Capacidade Máxima:").grid(row=2, column=0, padx=10, pady=10, sticky="e")
         self.entry_capacity = ctk.CTkEntry(form_frame, width=100, placeholder_text="Ex: 5")
         self.entry_capacity.grid(row=2, column=1, padx=10, pady=10, sticky="ew")
 
+        # Campo Capacidade Mínima
         ctk.CTkLabel(form_frame, text="Capacidade Mínima:").grid(row=2, column=2, padx=10, pady=10, sticky="e")
         self.entry_min_capacity = ctk.CTkEntry(form_frame, width=100, placeholder_text="Ex: 2")
         self.entry_min_capacity.grid(row=2, column=3, padx=10, pady=10, sticky="ew")
 
         ctk.CTkButton(form_frame, text="Criar", command=self.create_group).grid(row=2, column=4, padx=10, pady=10)
 
-        # Search Frame
+        # --- Barra de Pesquisa ---
         search_frame = ctk.CTkFrame(self)
         search_frame.pack(side="top", fill="x", padx=10, pady=5)
         
@@ -63,11 +58,10 @@ class GroupView(ctk.CTkFrame):
         ctk.CTkButton(search_frame, text="Buscar", command=self.perform_search, width=100).pack(side="left", padx=5, pady=10)
         ctk.CTkButton(search_frame, text="Limpar", command=self.clear_search, fg_color="transparent", border_width=1, width=100).pack(side="left", padx=(5, 15), pady=10)
 
-        # List Frame
+        # --- Lista de Grupos (Treeview) ---
         list_frame = ctk.CTkFrame(self)
         list_frame.pack(side="top", fill="both", expand=True, padx=10, pady=5)
 
-        # Ensure Treeview style is consistent
         style = ttk.Style()
         style.theme_use("default")
         style.configure("Treeview",
@@ -90,7 +84,7 @@ class GroupView(ctk.CTkFrame):
         self.tree.heading("capacity", text="Capacidade")
         self.tree.heading("count", text="Nº Alunos")
         self.tree.heading("id", text="ID")
-        self.tree.column("id", width=0, stretch=tk.NO) # Hide ID column
+        self.tree.column("id", width=0, stretch=tk.NO) # Esconde a coluna ID
         
         self.tree.pack(side="left", fill="both", expand=True, padx=2, pady=2)
         
@@ -98,17 +92,15 @@ class GroupView(ctk.CTkFrame):
         scrollbar.pack(side="right", fill="y", padx=2, pady=2)
         self.tree.configure(yscrollcommand=scrollbar.set)
         
-        # Double click to edit
         self.tree.bind("<Double-1>", self.edit_group)
 
-        # Actions
+        # --- Ações ---
         action_frame = ctk.CTkFrame(self, fg_color="transparent")
         action_frame.pack(side="top", fill="x", padx=10, pady=5)
         ctk.CTkButton(action_frame, text="Gerir Membros", command=self.manage_group).pack(side="left", padx=5)
         ctk.CTkButton(action_frame, text="Editar Grupo", command=self.edit_group).pack(side="left", padx=5)
         ctk.CTkButton(action_frame, text="Eliminar Grupo", command=self.delete_group, fg_color="#c42b1c", hover_color="#961e14").pack(side="right", padx=5)
 
-        # Setup Focus Behavior
         self.setup_focus_behavior(self.entry_name)
         self.setup_focus_behavior(self.entry_capacity)
         self.setup_focus_behavior(self.entry_search)
@@ -129,7 +121,6 @@ class GroupView(ctk.CTkFrame):
         min_capacity = self.entry_min_capacity.get().strip()
 
         try:
-            # Default min capacity to 2 if empty, but better to let controller handle validation or pass explicitly
             if not min_capacity:
                 min_capacity = "2"
                 
@@ -141,7 +132,7 @@ class GroupView(ctk.CTkFrame):
             messagebox.showerror("Erro", str(e))
 
     def clear_form(self) -> None:
-        """Limpa os campos do formulário de criação."""
+        """Limpa os campos do formulário."""
         self.entry_name.delete(0, tk.END)
         self.entry_capacity.delete(0, tk.END)
         self.entry_min_capacity.delete(0, tk.END)
@@ -156,17 +147,13 @@ class GroupView(ctk.CTkFrame):
             self.refresh_list()
 
     def clear_search(self) -> None:
-        """Limpa a pesquisa e restaura a lista completa."""
+        """Limpa a pesquisa."""
         self.entry_search.delete(0, tk.END)
         self.refresh_list()
 
     def refresh_list(self, groups: Optional[List['Group']] = None) -> None:
         """
         Atualiza a lista de grupos na interface.
-
-        Args:
-            groups (Optional[List[Group]]): Lista de grupos a exibir.
-                                            Se None, carrega todos.
         """
         for item in self.tree.get_children():
             self.tree.delete(item)
@@ -195,12 +182,7 @@ class GroupView(ctk.CTkFrame):
                 messagebox.showerror("Erro", str(e))
 
     def edit_group(self, event=None) -> None:
-        """
-        Abre a janela de edição para o grupo selecionado.
-
-        Args:
-            event: Evento que disparou a ação (opcional).
-        """
+        """Abre a janela de edição para o grupo selecionado."""
         selected = self.tree.selection()
         if not selected:
             if event is None:
@@ -245,28 +227,24 @@ class EditGroupWindow(ctk.CTkToplevel):
         content_frame = ctk.CTkFrame(self)
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Name
         ctk.CTkLabel(content_frame, text="Nome do Grupo:").pack(pady=(10, 5))
         self.entry_name = ctk.CTkEntry(content_frame)
         self.entry_name.insert(0, self.group.name)
         self.entry_name.pack(pady=5)
         self.setup_focus(self.entry_name)
 
-        # Capacity
         ctk.CTkLabel(content_frame, text="Capacidade Máxima:").pack(pady=(10, 5))
         self.entry_capacity = ctk.CTkEntry(content_frame)
         self.entry_capacity.insert(0, str(self.group.max_capacity))
         self.entry_capacity.pack(pady=5)
         self.setup_focus(self.entry_capacity)
 
-        # Min Capacity
         ctk.CTkLabel(content_frame, text="Capacidade Mínima:").pack(pady=(10, 5))
         self.entry_min_capacity = ctk.CTkEntry(content_frame)
         self.entry_min_capacity.insert(0, str(self.group.min_capacity))
         self.entry_min_capacity.pack(pady=5)
         self.setup_focus(self.entry_min_capacity)
 
-        # Buttons
         ctk.CTkButton(content_frame, text="Guardar", command=self.save).pack(pady=20)
 
     def setup_focus(self, entry):
@@ -278,7 +256,7 @@ class EditGroupWindow(ctk.CTkToplevel):
         entry.bind("<FocusOut>", lambda e: entry.configure(border_color=default_border))
 
     def save(self) -> None:
-        """Guarda as alterações feitas ao grupo."""
+        """Guarda as alterações."""
         name = self.entry_name.get().strip()
         capacity = self.entry_capacity.get().strip()
         min_capacity = self.entry_min_capacity.get().strip()
@@ -292,7 +270,7 @@ class EditGroupWindow(ctk.CTkToplevel):
             messagebox.showerror("Erro", str(e))
 
 class GroupDetailsWindow(ctk.CTkToplevel):
-    """Janela modal para gestão de membros de um grupo."""
+    """Janela modal para gestão de membros de um grupo (adicionar/remover)."""
     def __init__(self, parent, controller: 'MainController', group_id: str) -> None:
         super().__init__(parent)
         self.controller: 'MainController' = controller
@@ -306,29 +284,26 @@ class GroupDetailsWindow(ctk.CTkToplevel):
         self.title(f"Gerir Grupo: {self.group.name}")
         self.geometry("700x500")
         
-        # Make modal
         self.grab_set()
         
         self.create_widgets()
         self.refresh_lists()
 
     def create_widgets(self) -> None:
-        """Cria os widgets da janela de detalhes."""
+        """Cria duas listas: alunos sem grupo e membros do grupo."""
         if not self.group: return
-        # Info
         info_label = ctk.CTkLabel(self, text=f"Grupo: {self.group.name} | Cap. Min: {self.group.min_capacity} | Cap. Max: {self.group.max_capacity}", font=("Roboto", 18, "bold"))
         info_label.pack(pady=20)
 
         content_frame = ctk.CTkFrame(self, fg_color="transparent")
         content_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
-        # Available Students
+        # --- Lado Esquerdo: Alunos Disponíveis ---
         left_frame = ctk.CTkFrame(content_frame)
         left_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
         
         ctk.CTkLabel(left_frame, text="Alunos Disponíveis").pack(pady=5)
         
-        # List container
         left_list_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
         left_list_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -339,19 +314,18 @@ class GroupDetailsWindow(ctk.CTkToplevel):
         scroll_avail.pack(side="right", fill="y")
         self.list_available.configure(yscrollcommand=scroll_avail.set)
 
-        # Buttons
+        # --- Centro: Botões de Movimento ---
         btn_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
         btn_frame.pack(side="left", padx=5)
         ctk.CTkButton(btn_frame, text="Adicionar ->", command=self.add_student).pack(pady=10)
         ctk.CTkButton(btn_frame, text="<- Remover", command=self.remove_student, fg_color="#c42b1c", hover_color="#961e14").pack(pady=10)
 
-        # Group Members
+        # --- Lado Direito: Membros Atuais ---
         right_frame = ctk.CTkFrame(content_frame)
         right_frame.pack(side="right", fill="both", expand=True, padx=(10, 0))
         
         ctk.CTkLabel(right_frame, text="Membros do Grupo").pack(pady=5)
         
-        # List container
         right_list_frame = ctk.CTkFrame(right_frame, fg_color="transparent")
         right_list_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -363,17 +337,16 @@ class GroupDetailsWindow(ctk.CTkToplevel):
         self.list_members.configure(yscrollcommand=scroll_members.set)
 
     def refresh_lists(self) -> None:
-        """Atualiza as listas de alunos disponíveis e membros do grupo."""
+        """Atualiza o conteúdo das listas."""
         self.list_available.delete(0, tk.END)
         self.list_members.delete(0, tk.END)
 
-        # Available
+        # Preenche alunos disponíveis (sem grupo)
         available = self.controller.get_students_without_group()
         for s in available:
             self.list_available.insert(tk.END, f"{s.student_number} - {s.name}")
 
-        # Members
-        # Reload group to get fresh data
+        # Preenche membros atuais
         self.group = self.controller.get_group(self.group_id)
         if self.group:
             for s_num in self.group.student_ids:
@@ -382,7 +355,7 @@ class GroupDetailsWindow(ctk.CTkToplevel):
                     self.list_members.insert(tk.END, f"{student.student_number} - {student.name}")
 
     def add_student(self) -> None:
-        """Adiciona o aluno selecionado ao grupo."""
+        """Move o aluno da lista de disponíveis para o grupo."""
         selection = self.list_available.curselection()
         if not selection:
             return
@@ -393,21 +366,14 @@ class GroupDetailsWindow(ctk.CTkToplevel):
         try:
             self.controller.add_student_to_group(student_number, self.group_id)
             self.refresh_lists()
-            if isinstance(self.master.master, GroupView) or isinstance(self.master, GroupView): 
-                 # Handle hierarchy: View -> TabView -> App or View -> App
-                 # Actually self.master passed in init is GroupView
-                 pass
-            # However, self.master might be just the CTk instance if we passed that, 
-            # but here we passed 'self' from GroupView which is the frame.
-            # But Toplevel usually takes root as master internally if not specified or handles it.
-            # Let's rely on the passed parent.
+            # Tenta atualizar a lista principal se possível
             if hasattr(self.master, 'refresh_list'):
                 self.master.refresh_list()
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
 
     def remove_student(self) -> None:
-        """Remove o aluno selecionado do grupo."""
+        """Remove o aluno do grupo e devolve à lista de disponíveis."""
         selection = self.list_members.curselection()
         if not selection:
             return
