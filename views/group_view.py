@@ -127,7 +127,6 @@ class GroupView(ctk.CTkFrame):
             self.controller.create_group(name, capacity, min_capacity)
             messagebox.showinfo("Sucesso", "Grupo criado com sucesso.")
             self.clear_form()
-            self.refresh_list()
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
 
@@ -177,7 +176,6 @@ class GroupView(ctk.CTkFrame):
         if messagebox.askyesno("Confirmar", "Tem a certeza que deseja eliminar este grupo?"):
             try:
                 self.controller.delete_group(group_id)
-                self.refresh_list()
             except ValueError as e:
                 messagebox.showerror("Erro", str(e))
 
@@ -264,7 +262,6 @@ class EditGroupWindow(ctk.CTkToplevel):
         try:
             self.controller.update_group(self.group.group_id, name, capacity, min_capacity)
             messagebox.showinfo("Sucesso", "Grupo atualizado com sucesso.")
-            self.parent_view.refresh_list()
             self.destroy()
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
@@ -366,9 +363,6 @@ class GroupDetailsWindow(ctk.CTkToplevel):
         try:
             self.controller.add_student_to_group(student_number, self.group_id)
             self.refresh_lists()
-            # Tenta atualizar a lista principal se possível
-            if hasattr(self.master, 'refresh_list'):
-                self.master.refresh_list()
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
 
@@ -384,7 +378,5 @@ class GroupDetailsWindow(ctk.CTkToplevel):
         try:
             self.controller.remove_student_from_group(student_number, self.group_id)
             self.refresh_lists()
-            if hasattr(self.master, 'refresh_list'):
-                self.master.refresh_list()
         except ValueError as e:
             messagebox.showerror("Erro", str(e))

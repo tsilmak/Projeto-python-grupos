@@ -4,7 +4,7 @@ from views.student_view import StudentView
 from views.group_view import GroupView
 
 # Configuração global da aparência do CustomTkinter
-ctk.set_appearance_mode("System")  # Usa o tema do sistema (Dark/Light)
+ctk.set_appearance_mode("Dark")  # Força o modo escuro
 ctk.set_default_color_theme("blue") 
 
 class App(ctk.CTk):
@@ -38,10 +38,12 @@ class App(ctk.CTk):
         # Inicializa a vista de alunos na primeira aba
         self.student_view = StudentView(self.tabview.tab("Gerir Alunos"), self.controller)
         self.student_view.pack(fill="both", expand=True)
+        self.controller.add_observer(self.student_view)
 
         # Inicializa a vista de grupos na segunda aba
         self.group_view = GroupView(self.tabview.tab("Gerir Grupos"), self.controller)
         self.group_view.pack(fill="both", expand=True)
+        self.controller.add_observer(self.group_view)
 
     def on_close(self):
         """Executado quando a janela é fechada."""

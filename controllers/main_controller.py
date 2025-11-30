@@ -1,5 +1,6 @@
 import uuid
 import re
+import unicodedata
 from typing import List, Optional
 from models.data_manager import DataManager
 from models.student import Student
@@ -17,10 +18,27 @@ class MainController:
     def __init__(self) -> None:
         """Inicializa o MainController."""
         self.data_manager: DataManager = DataManager()
+        self._observers = []
+
+    def add_observer(self, observer):
+        """Adiciona um observador (view) para ser notificado de mudanças."""
+        self._observers.append(observer)
+
+    def notify_observers(self):
+        """Notifica todos os observadores para atualizarem suas interfaces."""
+        for observer in self._observers:
+            if hasattr(observer, 'refresh_list'):
+                observer.refresh_list()
 
     def save_data(self) -> None:
         """Guarda os dados persistentemente."""
         self.data_manager.save_data()
+
+    def _normalize(self, text: str) -> str:
+        """Normaliza texto para pesquisa (lowercase e sem acentos)."""
+        if not text:
+            return ""
+        return unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('ASCII').lower()
 
     # --- Gestão de Alunos ---
     def create_student(self, student_number: str, name: str, email: str) -> Student:
@@ -71,6 +89,7 @@ class MainController:
         student = Student(student_number, name, email)
         self.data_manager.students[student_number] = student
         self.save_data()
+        self.notify_observers()
         return student
 
     def update_student(self, student_number: str, name: str, email: str) -> Student:
@@ -103,6 +122,7 @@ class MainController:
         student.name = name
         student.email = email
         self.save_data()
+        self.notify_observers()
         return student
 
     def delete_student(self, student_number: str) -> None:
@@ -124,6 +144,7 @@ class MainController:
         # Remover do dicionário global de alunos
         del self.data_manager.students[student_number]
         self.save_data()
+        self.notify_observers()
 
     def get_all_students(self) -> List[Student]:
         """Retorna uma lista de todos os alunos."""
@@ -131,12 +152,12 @@ class MainController:
 
     def search_students(self, query: str) -> List[Student]:
         """Pesquisa alunos por nome, número ou email (case insensitive)."""
-        query = query.lower()
+        normalized_query = self._normalize(query)
         results = []
         for student in self.data_manager.students.values():
-            if (query in student.name.lower() or 
-                query in str(student.student_number) or 
-                query in student.email.lower()):
+            if (normalized_query in self._normalize(student.name) or 
+                normalized_query in str(student.student_number) or 
+                normalized_query in self._normalize(student.email)):
                 results.append(student)
         return results
 
@@ -182,6 +203,7 @@ class MainController:
         group = Group(group_id, name, max_cap, min_cap)
         self.data_manager.groups[group_id] = group
         self.save_data()
+        self.notify_observers()
         return group
 
     def update_group(self, group_id: str, name: str, max_capacity: str, min_capacity: str) -> Group:
@@ -226,6 +248,7 @@ class MainController:
         group.max_capacity = max_cap
         group.min_capacity = min_cap
         self.save_data()
+        self.notify_observers()
         return group
 
     def delete_group(self, group_id: str) -> None:
@@ -245,15 +268,16 @@ class MainController:
         
         del self.data_manager.groups[group_id]
         self.save_data()
+        self.notify_observers()
 
     def get_all_groups(self) -> List[Group]:
         return list(self.data_manager.groups.values())
 
     def search_groups(self, query: str) -> List[Group]:
-        query = query.lower()
+        normalized_query = self._normalize(query)
         results = []
         for group in self.data_manager.groups.values():
-            if query in group.name.lower():
+            if normalized_query in self._normalize(group.name):
                 results.append(group)
         return results
 
@@ -284,6 +308,7 @@ class MainController:
         if group.add_student(student.student_number):
             student.group_id = group.group_id
             self.save_data()
+            self.notify_observers()
 
     def remove_student_from_group(self, student_number: str, group_id: str) -> None:
         """
@@ -306,6 +331,7 @@ class MainController:
         if group.remove_student(student_number):
             student.group_id = None
             self.save_data()
+            self.notify_observers()
 
     def get_students_without_group(self) -> List[Student]:
         """Retorna apenas os alunos que ainda não têm grupo."""
@@ -344,3 +370,4 @@ class MainController:
         new_group.add_student(student_number)
         student.group_id = new_group_id
         self.save_data()
+        self.notify_observers()

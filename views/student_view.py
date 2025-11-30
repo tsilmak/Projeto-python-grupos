@@ -151,7 +151,6 @@ class StudentView(ctk.CTkFrame):
             self.controller.create_student(number, name, email)
             messagebox.showinfo("Sucesso", "Aluno registado com sucesso.")
             self.clear_form()
-            self.refresh_list()
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
 
@@ -185,7 +184,6 @@ class StudentView(ctk.CTkFrame):
             try:
                 self.controller.delete_student(str(number))
                 messagebox.showinfo("Sucesso", "Aluno removido.")
-                self.refresh_list()
             except ValueError as e:
                 messagebox.showerror("Erro", str(e))
 
@@ -300,7 +298,6 @@ class EditStudentWindow(ctk.CTkToplevel):
         try:
             self.controller.update_student(self.student.student_number, name, email)
             messagebox.showinfo("Sucesso", "Aluno atualizado com sucesso.")
-            self.parent_view.refresh_list()
             self.destroy()
         except ValueError as e:
             messagebox.showerror("Erro", str(e))
@@ -351,7 +348,6 @@ class TransferStudentWindow(ctk.CTkToplevel):
         try:
             self.controller.transfer_student(self.student.student_number, group_id)
             messagebox.showinfo("Sucesso", "Aluno transferido.")
-            self.parent_view.refresh_list()
             self.destroy()
         except ValueError as e:
             messagebox.showerror("Erro", str(e))

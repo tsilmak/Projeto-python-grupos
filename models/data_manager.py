@@ -1,10 +1,21 @@
 import json
 import os
+import sys
 from typing import Dict, Any
 from models.student import Student
 from models.group import Group
 
-DATA_FILE = "data.json"
+# Determina o caminho correto para o ficheiro de dados
+# Se estiver a executar como executável compilado, usa a pasta do executável
+# Caso contrário, usa a pasta onde o script está localizado
+if getattr(sys, 'frozen', False):
+    # Se está executando como executável compilado (PyInstaller)
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    # Se está executando como script Python
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+DATA_FILE = os.path.join(BASE_DIR, "data.json")
 
 class DataManager:
     """
